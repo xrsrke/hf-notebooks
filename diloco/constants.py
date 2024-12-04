@@ -53,5 +53,8 @@ FRANCE_SUPERCOMPUTERS = {
     # google map: https://www.google.com/maps/place/IN2P3+Computing+Center/@45.7826699,4.8626987,17z/data=!3m1!4b1!4m6!3m5!1s0x47f4ea97be7678f3:0x26c07dda0ba3db55!8m2!3d45.7826699!4d4.865279!16s%2Fg%2F1216x10y?entry=ttu&g_ep=EgoyMDI0MTEyNC4xIKXMDSoASAFQAw%3D%3D
     "JOLIOT_CURIE": Supercomputer("JOLIOT_CURIE", (45.7826699, 4.8626)),
     # NOTE: Météo-France
-    "METEO_FRANCE": Supercomputer("METEO_FRANCE", (45.7826699, 4.8626987)),
+    # "METEO_FRANCE": Supercomputer("METEO_FRANCE", (45.7826699, 4.8626987)),
+    
+    # NOTE: Lawrence Livermore National Laboratory
+    "EL_CAPITAN": Supercomputer("EL_CAPITAN", (37.6869634,-121.7084555)),
 }
