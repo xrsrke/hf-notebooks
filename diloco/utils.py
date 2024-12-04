@@ -60,6 +60,36 @@ def get_num_training_steps(dataset_size, model_size):
     return dataset_size / get_maximum_tokens_per_step(model_size)
 
 
+def calculate_total_steps(model_size, global_batch_size):
+    """ compute the total number of steps for a given model size and global batch size """
+    dataset_size = get_dataset_size_from_model_size(model_size)
+    num_total_steps = dataset_size // global_batch_size
+    return num_total_steps
+
+
+def calculate_total_flops(model_size):
+    dataset_size = get_dataset_size_from_model_size(model_size)
+    total_flops = compute_training_flops(dataset_size=dataset_size, model_size=model_size)
+    return total_flops
+
+
+def calculate_flops_per_step(model_size, global_batch_size):
+    flops_per_step = compute_training_flops(dataset_size=global_batch_size, model_size=model_size) 
+    return flops_per_step
+
+
+def calculate_num_h100s_per_step(model_size, global_batch_size, hardware_flops):
+    """
+    hardware_flops: utilized harfware flops
+    """
+    flops_per_step = calculate_flops_per_step(model_size, global_batch_size)
+    return flops_per_step // hardware_flops
+
+
+def calculate_total_time_to_train_a_model(model_size, global_batch_size, time_per_step):
+    total_steps = calculate_total_steps(model_size, global_batch_size)
+    return time_per_step * total_steps
+
 ### MODEL SIZE
 
 def get_model_gradient_size(model_size: int, datatype: Datatype):
@@ -84,6 +114,19 @@ def calculate_surface_distance(coord1, coord2):
     return great_circle(coord1, coord2).kilometers
 
 
+def compute_minimum_latency_between_clusters(cluster_1_name, cluster_2_name):
+    from constants import FRANCE_SUPERCOMPUTERS, SPEED_OF_LIGHT
+    cluster_1_coordinate = FRANCE_SUPERCOMPUTERS[cluster_1_name].coordinate
+    cluster_2_coordinate = FRANCE_SUPERCOMPUTERS[cluster_2_name].coordinate
+    distance = calculate_surface_distance(cluster_1_coordinate, cluster_2_coordinate)
+    minimum_latency = distance / SPEED_OF_LIGHT
+    return minimum_latency
+
+def calculate_total_minimum_comm_latency_to_train_a_model(model_size, global_batch_size, minimum_latency):
+    total_steps = calculate_total_steps(model_size, global_batch_size)
+    return total_steps * minimum_latency
+
+
 ##### UNIT CONVERSIONS #####
 
 def convert_to_xt_format(number):
@@ -104,6 +147,24 @@ def convert_to_xt_format(number):
     return f"{trillions:.1f}T"
 
 
+def convert_to_million_format(number):
+    """
+    Converts a number to the format 'xT', where 'T' represents trillions.
+    
+    Args:
+        number (int or float): The numeric value to convert.
+
+    Returns:
+        str: The formatted string in 'xT' format.
+    """
+    if not isinstance(number, (int, float)):
+        raise TypeError("Input must be a number (int or float).")
+    
+    # Convert to trillions
+    trillions = number / 1e6
+    return f"{trillions:.1f}m"
+
+
 def convert_to_petaflops(flops):
     """
     Convert a number representing FLOPs into a string representing petaflops.
@@ -116,6 +177,21 @@ def convert_to_petaflops(flops):
     """
     petaflops = flops / (10**15)
     return f"{petaflops:.3f} PFLOPs"
+
+
+def convert_to_exaflops(flops):
+    """
+    Convert a number representing FLOPs into a string representing exaflops.
+
+    Args:
+        flops (float): The number of FLOPs.
+
+    Returns:
+        str: A string representation of FLOPs in exaflops.
+    """
+    exaflops = flops / (10**18)
+    return f"{exaflops:.3f} EFLOPs"
+
 
 
 def convert_bytes_to_terabytes(bytes_count):
