@@ -1,4 +1,4 @@
-from name import Datatype
+from name import Datatype, Supercomputer
 
 
 ### DATA
@@ -8,6 +8,7 @@ MAX_CRITICAL_BATCH_SIZE = 40*10**6
 
 ### COMPUTE
 NUM_SEC_PER_STEP = 0.5
+
 
 # NOTE: https://www.electronicspecifier.com/news/analysis/nvidia-s-h100-microchips-projected-to-surpass-energy-consumption-of-entire-nations#:~:text=Each%20H100%20GPU%2C%20running%20at,to%20the%20average%20American%20household.
 # at 61% utilization
@@ -34,7 +35,23 @@ DATATYPE_TO_SIZE = {
 }
 
 
+### COMMUNICATION
+EARTH_EQUATORIAL_DIAMETER = 12742 # km, 12742 km
+
+
 ### UNIT
 NUM_SECONDS_IN_A_DAY = 60 * 60 * 24
 NUM_SECONDS_IN_A_YEAR = NUM_SECONDS_IN_A_DAY * 365
-SPEED_OF_LIGHT = 299792458 # m/s
+SPEED_OF_LIGHT = 299792458 # m/s, km/s = 299792.458
+
+FRANCE_SUPERCOMPUTERS = {
+    # google map: https://www.google.com/maps/place/IDRIS+-+CNRS/@48.7071906,2.1727666,16z/data=!3m1!4b1!4m6!3m5!1s0x47e67f52d2e55399:0xc648872cfba08d78!8m2!3d48.7071906!4d2.1753469!16s%2Fg%2F1tf7f_1v?entry=ttu&g_ep=EgoyMDI0MTEyNC4xIKXMDSoASAFQAw%3D%3D
+    "JEAN_ZAY": Supercomputer("JEAN_ZAY", (48.7071906, 2.1753469)),
+
+    # NOTE: located at "Very Large Computing Centre tgcc"
+    # tgcc stands for "Très Grand Centre de Calcul"
+    # google map: https://www.google.com/maps/place/IN2P3+Computing+Center/@45.7826699,4.8626987,17z/data=!3m1!4b1!4m6!3m5!1s0x47f4ea97be7678f3:0x26c07dda0ba3db55!8m2!3d45.7826699!4d4.865279!16s%2Fg%2F1216x10y?entry=ttu&g_ep=EgoyMDI0MTEyNC4xIKXMDSoASAFQAw%3D%3D
+    "JOLIOT_CURIE": Supercomputer("JOLIOT_CURIE", (45.7826699, 4.8626)),
+    # NOTE: Météo-France
+    "METEO_FRANCE": Supercomputer("METEO_FRANCE", (45.7826699, 4.8626987)),
+}

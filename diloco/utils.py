@@ -40,6 +40,8 @@ from name import Datatype
 #     return total_flops
 
 
+### SCALING LAWS
+
 def compute_training_flops(dataset_size, model_size):
     # reference: https://blog.eleuther.ai/transformer-math/#compute-requirements
     return 6 * dataset_size * model_size
@@ -58,9 +60,28 @@ def get_num_training_steps(dataset_size, model_size):
     return dataset_size / get_maximum_tokens_per_step(model_size)
 
 
+### MODEL SIZE
+
 def get_model_gradient_size(model_size: int, datatype: Datatype):
     from constants import DATATYPE_TO_SIZE
     return model_size * DATATYPE_TO_SIZE[datatype]
+
+
+### COMMUNICATION
+def calculate_surface_distance(coord1, coord2):
+    from geopy.distance import great_circle
+    """
+    Calculate the shortest distance between two points along the Earth's surface.
+    Uses the great circle distance (orthodromic distance).
+    
+    Args:
+        coord1: Tuple of (latitude, longitude) for first point
+        coord2: Tuple of (latitude, longitude) for second point
+        
+    Returns:
+        Distance in kilometers
+    """
+    return great_circle(coord1, coord2).kilometers
 
 
 ##### UNIT CONVERSIONS #####

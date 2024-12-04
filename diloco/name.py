@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from dataclasses import dataclass
 
 
 class Datatype(Enum):
@@ -8,3 +9,8 @@ class Datatype(Enum):
 
 class GPU(Enum):
     H100 = auto()
+
+@dataclass
+class Supercomputer:
+    name: str
+    coordinate: tuple
