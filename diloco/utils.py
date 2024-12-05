@@ -1,4 +1,5 @@
 from name import Datatype
+from constants import TOTAL_H100_WATT
 
 # def chinchilla_flops(seq_len, vocab_size, d_model, num_heads, num_layers, ffw_size):
 #     """ 
@@ -127,7 +128,46 @@ def calculate_total_minimum_comm_latency_to_train_a_model(model_size, global_bat
     return total_steps * minimum_latency
 
 
+### ELECTRICITY CONSUMPTION
+def calculate_electricity_consumption_of_an_h100(power = TOTAL_H100_WATT, time = None):
+    """
+    time is in seconds
+    Energy $(\mathrm{E})$ is the product of Power $(\mathrm{P})$ and Time $(\mathrm{t})$ :
+
+    $$
+    E=P \times t
+    $$
+
+
+    If Time is in Seconds:
+    - Power (P): 1275 Watts
+    - Time (t): $x$ seconds
+    - Energy (E) in Joules (since 1 Watt = 1 Joule/second)
+    """
+    assert time is not None
+    return power * time
+
+
 ##### UNIT CONVERSIONS #####
+
+
+def convert_bytes_to_terabytes(bytes_value):
+    """
+    Converts a value in bytes to terabytes (TB).
+    
+    Args:
+        bytes_value (int or float): The number of bytes to convert.
+
+    Returns:
+        float: The value in terabytes.
+    """
+    if not isinstance(bytes_value, (int, float)):
+        raise TypeError("Input must be a number (int or float).")
+    
+    # 1 terabyte = 1e12 bytes
+    terabytes = bytes_value / 1e12
+    return terabytes
+
 
 def convert_to_xt_format(number):
     """
@@ -165,6 +205,25 @@ def convert_to_million_format(number):
     return f"{trillions:.1f}m"
 
 
+def convert_to_billion_format(number):
+    """
+    Converts a number to the format 'xB', where 'B' represents billions.
+    
+    Args:
+        number (int or float): The numeric value to convert.
+
+    Returns:
+        str: The formatted string in 'xB' format.
+    """
+    if not isinstance(number, (int, float)):
+        raise TypeError("Input must be a number (int or float).")
+    
+    # Convert to billions
+    billions = number / 1e9
+    return f"{billions:.1f}B"
+
+
+
 def convert_to_petaflops(flops):
     """
     Convert a number representing FLOPs into a string representing petaflops.
@@ -176,8 +235,7 @@ def convert_to_petaflops(flops):
         str: A string representation of FLOPs in petaflops.
     """
     petaflops = flops / (10**15)
-    return f"{petaflops:.3f} PFLOPs"
-
+    return "{:,}".format(petaflops) + " PFLOPs"
 
 def convert_to_exaflops(flops):
     """
@@ -190,7 +248,7 @@ def convert_to_exaflops(flops):
         str: A string representation of FLOPs in exaflops.
     """
     exaflops = flops / (10**18)
-    return f"{exaflops:.3f} EFLOPs"
+    return "{:,}".format(exaflops) + " EFLOPs"
 
 
 
@@ -219,8 +277,7 @@ def convert_seconds_to_days(seconds):
         str: A string representation of the equivalent time in days.
     """
     days = seconds / (24 * 60 * 60)  # 1 day = 24 hours * 60 minutes * 60 seconds
-    return f"{days:.3f} days"
-
+    return "{:,}".format(days) + " days"
 
 def convert_seconds_to_years(seconds):
     """
@@ -234,9 +291,8 @@ def convert_seconds_to_years(seconds):
     """
     # 1 year = 365.25 days (to account for leap years) * 24 hours * 60 minutes * 60 seconds
     seconds_in_a_year = 365.25 * 24 * 60 * 60
-    years = seconds / seconds_in_a_year
-    return f"{years:.3f} years"
-
+    years = seconds // seconds_in_a_year
+    return "{:,}".format(years) + " years"
 
 def convert_watts_to_megawatts(watts):
     """
@@ -251,3 +307,16 @@ def convert_watts_to_megawatts(watts):
     megawatts = watts / 1_000_000  # 1 megawatt = 1,000,000 watts
     return f"{megawatts:.3f} MW"
 
+
+def convert_watts_to_terawatts(watts):
+    """
+    Convert a number of watts into terawatts.
+
+    Args:
+        watts (float or int): The number of watts.
+
+    Returns:
+        str: A string representation of the equivalent power in terawatts.
+    """
+    terawatts = watts / 1_000_000_000_000  # 1 terawatt = 1,000,000,000,000 watts
+    return f"{terawatts:.12f} TW"
