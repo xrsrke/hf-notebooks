@@ -44,7 +44,8 @@ BFLOAT16_BYTES = 2
 
 ### COMMUNICATION
 EARTH_EQUATORIAL_DIAMETER = 12742 # km, 12742 km
-
+# https://www.nvidia.com/en-us/data-center/nvlink/
+NVLINK_MAX_TOTAL_BANDWIDTH = 1.8*1024**4
 
 ### UNIT
 NUM_SECONDS_IN_A_DAY = 60 * 60 * 24

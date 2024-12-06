@@ -128,6 +128,13 @@ def calculate_total_minimum_comm_latency_to_train_a_model(model_size, global_bat
     return total_steps * minimum_latency
 
 
+def calculate_comm_time_given_comm_volume(comm_volume, bandwidth):
+    """
+    comm_volume: in bytes
+    bandwidth: in bytes per second
+    """
+    return comm_volume / bandwidth
+
 ### ELECTRICITY CONSUMPTION
 def calculate_electricity_consumption_of_an_h100(power = TOTAL_H100_WATT, time = None):
     """
@@ -220,7 +227,7 @@ def convert_to_billion_format(number):
     
     # Convert to billions
     billions = number / 1e9
-    return f"{billions:.1f}B"
+    return f"{billions:.2f}B"
 
 
 
@@ -251,6 +258,20 @@ def convert_to_exaflops(flops):
     return "{:,}".format(exaflops) + " EFLOPs"
 
 
+def convert_bytes_to_gigabytes(bytes_count):
+    """
+    Convert a number representing bytes into gigabytes.
+
+    Args:
+        bytes_count (int or float): The number of bytes.
+
+    Returns:
+        str: A string representation of bytes in gigabytes.
+    """
+    gigabytes = bytes_count / (10**9)
+    return f"{gigabytes:.3f} GB"
+
+
 
 def convert_bytes_to_terabytes(bytes_count):
     """
@@ -277,7 +298,7 @@ def convert_seconds_to_days(seconds):
         str: A string representation of the equivalent time in days.
     """
     days = seconds / (24 * 60 * 60)  # 1 day = 24 hours * 60 minutes * 60 seconds
-    return "{:,}".format(days) + " days"
+    return "{:.1f}".format(days) + " days"
 
 def convert_seconds_to_years(seconds):
     """
@@ -291,8 +312,9 @@ def convert_seconds_to_years(seconds):
     """
     # 1 year = 365.25 days (to account for leap years) * 24 hours * 60 minutes * 60 seconds
     seconds_in_a_year = 365.25 * 24 * 60 * 60
-    years = seconds // seconds_in_a_year
-    return "{:,}".format(years) + " years"
+    years = seconds / seconds_in_a_year
+    # return "{:,}".format(years) + " years"
+    return f"{years:.1f} years"
 
 def convert_watts_to_megawatts(watts):
     """
