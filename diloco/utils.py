@@ -87,15 +87,41 @@ def calculate_num_h100s_per_step(model_size, global_batch_size, hardware_flops):
     return flops_per_step // hardware_flops
 
 
+def get_time_per_step(model_size, global_batch_size, hardware_flops):
+    flop_per_step = calculate_flops_per_step(model_size, global_batch_size)
+    num_h100s = calculate_num_h100s_per_step(model_size, global_batch_size, hardware_flops)
+    aggregate_throughput = num_h100s * hardware_flops
+    return flop_per_step / aggregate_throughput
+
+
 def calculate_total_time_to_train_a_model(model_size, global_batch_size, time_per_step):
     total_steps = calculate_total_steps(model_size, global_batch_size)
     return time_per_step * total_steps
 
+
+def get_training_cost(model_size, global_batch_size, utilized_flops, cost_per_hour):
+    num_h100s = calculate_num_h100s_per_step(model_size, global_batch_size, utilized_flops)
+    time_per_step = get_time_per_step(model_size, global_batch_size, utilized_flops)
+    time_per_step = time_per_step / 3600 # convert to hours
+    num_steps = calculate_total_steps(model_size, global_batch_size)
+    return num_h100s * cost_per_hour * time_per_step * num_steps
+
+
 ### MODEL SIZE
+
+def get_deepseek_model_size(n_layers, d_model, seq_len):
+    # equation 2: M=72 n_{\text {layer }} d_{\text {model }}^2+12 n_{\text {layer }} d_{\text {model }} l_{\text {seq }}
+    return  72 * n_layers * d_model**2 + 12 * n_layers * d_model * seq_len
 
 def get_model_gradient_size(model_size: int, datatype: Datatype):
     from constants import DATATYPE_TO_SIZE
     return model_size * DATATYPE_TO_SIZE[datatype]
+
+
+def get_critical_batch_size(model_size):
+    # page 9, deepseek's critical batch size scaling law
+    # https://arxiv.org/abs/2401.02954
+    return 0.2920 * (model_size ** 0.3271)
 
 
 ### COMMUNICATION
@@ -195,21 +221,12 @@ def convert_to_xt_format(number):
 
 
 def convert_to_million_format(number):
-    """
-    Converts a number to the format 'xT', where 'T' represents trillions.
-    
-    Args:
-        number (int or float): The numeric value to convert.
-
-    Returns:
-        str: The formatted string in 'xT' format.
-    """
     if not isinstance(number, (int, float)):
         raise TypeError("Input must be a number (int or float).")
     
-    # Convert to trillions
-    trillions = number / 1e6
-    return f"{trillions:.1f}m"
+    millions = number / 1e6
+    # return f"{millions:.1f}m"
+    return f"{millions:,.1f}m"
 
 
 def convert_to_billion_format(number):
@@ -227,7 +244,8 @@ def convert_to_billion_format(number):
     
     # Convert to billions
     billions = number / 1e9
-    return f"{billions:.2f}B"
+    # return f"{billions:.2f}B"
+    return f"{billions:,.2f}B"
 
 
 
@@ -314,7 +332,7 @@ def convert_seconds_to_years(seconds):
     seconds_in_a_year = 365.25 * 24 * 60 * 60
     years = seconds / seconds_in_a_year
     # return "{:,}".format(years) + " years"
-    return f"{years:.1f} years"
+    return f"{years:.2f} years"
 
 def convert_watts_to_megawatts(watts):
     """
@@ -341,4 +359,4 @@ def convert_watts_to_terawatts(watts):
         str: A string representation of the equivalent power in terawatts.
     """
     terawatts = watts / 1_000_000_000_000  # 1 terawatt = 1,000,000,000,000 watts
-    return f"{terawatts:.12f} TW"
+    return f"{terawatts:.3f} TW"
