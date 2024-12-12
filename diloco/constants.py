@@ -1,4 +1,4 @@
-from name import Datatype, Supercomputer
+from name import Datatype, Supercomputer, Transformer
 
 
 ### DATA
@@ -32,8 +32,10 @@ UTILIZED_BFLOAT16_FLOPS = H100_THEORICAL_PEAK_FLOPS_FP16_TC * BFLOAT16_MFU
 
 
 DATATYPE_TO_SIZE = {
+    Datatype.FLOAT32: 4,
+    Datatype.BFLOAT16: 2,
     Datatype.FP8: 1,
-    Datatype.BFLOAT16: 2
+    Datatype.INT4: 0.5,
 }
 
 
@@ -67,3 +69,22 @@ FRANCE_SUPERCOMPUTERS = {
     "EL_CAPITAN": Supercomputer("EL_CAPITAN", (37.6869634,-121.7084555)),
 }
 
+
+# https://huggingface.co/failspy/llama-3-70B-Instruct-abliterated/blob/main/config.json
+LLAMA3_70B_CONFIG = Transformer(
+    name="llama3 70b",
+    n_layers=80,
+    hidden_size=8192,
+    n_heads=64,
+    n_key_value_heads=8,
+    ctx_length=8192
+)
+# https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-405B/blob/main/config.json
+LLAMA3_400B_CONFIG = Transformer(
+    name="llama3 405B",
+    n_layers=126,
+    hidden_size=16384,
+    n_heads=128,
+    n_key_value_heads=8,
+    ctx_length=8192
+)

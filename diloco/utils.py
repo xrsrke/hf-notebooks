@@ -1,4 +1,4 @@
-from name import Datatype
+from name import Datatype, Transformer
 from constants import TOTAL_H100_WATT
 
 # def chinchilla_flops(seq_len, vocab_size, d_model, num_heads, num_layers, ffw_size):
@@ -161,6 +161,21 @@ def calculate_comm_time_given_comm_volume(comm_volume, bandwidth):
     """
     return comm_volume / bandwidth
 
+
+### MEMORY
+def calculate_weight_memory(num_parameters, bytes_per_param):
+    return num_parameters * bytes_per_param
+
+
+def calculate_kv_cache(transformer: Transformer, dtype_bytes: int):
+    # https://github.com/stas00/ml-engineering/tree/master/inference#kv-caching
+    # return dtype_bytes * 2 * num_hidden_layers * hidden_size * num_key_value_heads / num_attention_heads
+    kv_cache_per_token = dtype_bytes * 2 * transformer.n_layers * transformer.hidden_size * transformer.n_key_value_heads / transformer.n_heads
+    kv_cache_per_sequence = kv_cache_per_token * transformer.ctx_length
+
+    # kv_cache_per_sequence = dtype_bytes * 2 * transformer.n_layers * transformer.n_heads * (transformer.hidden_size / transformer.n_heads) * transformer.ctx_length
+    return kv_cache_per_sequence
+
 ### ELECTRICITY CONSUMPTION
 def calculate_electricity_consumption_of_an_h100(power = TOTAL_H100_WATT, time = None):
     """
@@ -274,6 +289,20 @@ def convert_to_exaflops(flops):
     """
     exaflops = flops / (10**18)
     return "{:,}".format(exaflops) + " EFLOPs"
+
+
+def convert_bytes_to_megabytes(bytes_count):
+    """
+    Convert a number representing bytes into megabytes.
+
+    Args:
+        bytes_count (int or float): The number of bytes.
+
+    Returns:
+        str: A string representation of bytes in megabytes.
+    """
+    megabytes = bytes_count / (10**6)
+    return f"{megabytes:.3f} MB"
 
 
 def convert_bytes_to_gigabytes(bytes_count):
