@@ -193,20 +193,20 @@ def calculate_memory_requirements(
     grad_mem = calculate_gradient_memory(transformer, config)
     activation_mem = calculate_activation_memory(transformer, config)[0]
     optim_mem = calculate_optimizer_memory(transformer, config)
-    comm_mem = calculate_communication_memory(transformer, config)
+    # comm_mem = calculate_communication_memory(transformer, config)
 
     inference_memory = model_mem + kv_cache_mem
     # training_memory = sum(memory_components.values()) - memory_components["kv_cache_mem"]
-    training_memory = model_mem + grad_mem + activation_mem + optim_mem + comm_mem
+    training_memory = model_mem + grad_mem + activation_mem + optim_mem
 
     # + memory_components["misc_mem"])
     memory_components = {
         "model_mem": (model_mem, round(((model_mem / training_memory) * 100), 2)),
+        "activation_mem": (activation_mem, round(((activation_mem / training_memory) * 100), 2)),
         "kv_cache_mem": (kv_cache_mem, 0),
         "grad_mem": (grad_mem, round(((grad_mem / training_memory) * 100), 2)),
-        "activation_mem": (activation_mem, round(((activation_mem / training_memory) * 100), 2)),
         "optim_mem": (optim_mem, round(((optim_mem / training_memory) * 100), 2)),
-        "comm_mem": (comm_mem, round(((comm_mem / training_memory) * 100), 2)),
+        # "comm_mem": (comm_mem, round(((comm_mem / training_memory) * 100), 2)),
     }
     
     memory_components_gb = {k: v for k, v in memory_components.items()}
