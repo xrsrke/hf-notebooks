@@ -217,31 +217,17 @@ def convert_bytes_to_terabytes(bytes_value):
     return terabytes
 
 
-def convert_to_xt_format(number):
-    """
-    Converts a number to the format 'xT', where 'T' represents trillions.
-    
-    Args:
-        number (int or float): The numeric value to convert.
-
-    Returns:
-        str: The formatted string in 'xT' format.
-    """
-    if not isinstance(number, (int, float)):
-        raise TypeError("Input must be a number (int or float).")
-    
-    # Convert to trillions
-    trillions = number / 1e12
-    return f"{trillions:.1f}T"
-
-
 def convert_to_million_format(number):
     if not isinstance(number, (int, float)):
         raise TypeError("Input must be a number (int or float).")
     
     millions = number / 1e6
-    # return f"{millions:.1f}m"
-    return f"{millions:,.1f}m"
+
+    if abs(millions) < 0.1:  # Consider very small numbers close to 0
+        return number
+    else:
+        # return f"{millions:.1f}m"
+        return f"{millions:,.1f}m"
 
 
 def convert_to_billion_format(number):
@@ -262,6 +248,26 @@ def convert_to_billion_format(number):
     # return f"{billions:.2f}B"
     return f"{billions:,.2f}B"
 
+
+def convert_to_xt_format(number):
+    """
+    Converts a number to the format 'xT', where 'T' represents trillions.
+    
+    Args:
+        number (int or float): The numeric value to convert.
+
+    Returns:
+        str: The formatted string in 'xT' format.
+    """
+    if not isinstance(number, (int, float)):
+        raise TypeError("Input must be a number (int or float).")
+    
+    # Convert to trillions
+    trillions = number / 1e12
+    if abs(trillions) < 0.1:  # Consider very small numbers close to 0
+        return convert_to_billion_format(number)
+    else:
+        return f"{trillions:.1f}T"
 
 
 def convert_to_petaflops(flops):

@@ -1,4 +1,4 @@
-from name import Datatype, Supercomputer, Transformer
+from name import Datatype, Supercomputer, Transformer, TrainingConfig
 
 
 ### DATA
@@ -23,6 +23,16 @@ H100_THEORICAL_PEAK_FLOPS_FP16_TC = 989e12
 H100_THEORICAL_PEAK_FLOPS_FP8_TC = 1979e12
 H100_COST_PER_HOUR = 2
 H100_COST_PER_GPU = 30000
+
+# GPU memory
+H100_MEMORY = 80*1024**3
+# NOTE: V100 have two available memory configs: 16GB HBM2 memory, and 32GB HBM2 memory,
+# because the Summit cluster mostly have the 16GB version, so i put 16gb here
+V100_MEMORY = 16*1024**3
+# NOTE: because Leonardo have a lot of A100 nodes
+# so i put 64gb version here
+A100_MEMORY = 64*1024**3
+MI250X_MEMORY = 128*1024**3
 
 BFLOAT16_MFU = 0.55
 FP8_MFU = 0.40
@@ -77,7 +87,7 @@ LLAMA3_70B_CONFIG = Transformer(
     hidden_size=8192,
     n_heads=64,
     n_key_value_heads=8,
-    ctx_length=8192
+    # ctx_length=8192
 )
 # https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-405B/blob/main/config.json
 LLAMA3_400B_CONFIG = Transformer(
@@ -86,5 +96,23 @@ LLAMA3_400B_CONFIG = Transformer(
     hidden_size=16384,
     n_heads=128,
     n_key_value_heads=8,
-    ctx_length=8192
+    # ctx_length=8192
+)
+
+# NOTE: a standard training config for estimating the memory requirements
+VANILA_TRAINING_CONFIG = TrainingConfig(
+    tp_size=1, pp_size=1, num_gpus=1,
+    batch_size_per_replicas=1,
+    ctx_length=8192,
+    partition_activations=False,
+    checkpoint_activations=False,
+    
+    weight_dtype=Datatype.BFLOAT16,
+    act_dtype=Datatype.BFLOAT16,
+    gradient_dtype=Datatype.BFLOAT16,
+
+    zero1=1,
+    optim_first_state_dtype=Datatype.FLOAT32,
+    optim_second_state_dtype=Datatype.FLOAT32,
+    master_weight_dtype=Datatype.FLOAT32,
 )
