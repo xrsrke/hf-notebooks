@@ -209,8 +209,8 @@ def convert_bytes_to_terabytes(bytes_value):
     Returns:
         float: The value in terabytes.
     """
-    if not isinstance(bytes_value, (int, float)):
-        raise TypeError("Input must be a number (int or float).")
+    # if not isinstance(bytes_value, (int, float)):
+    #     raise TypeError("Input must be a number (int or float).")
     
     # 1 terabyte = 1e12 bytes
     terabytes = bytes_value / 1e12
@@ -218,8 +218,8 @@ def convert_bytes_to_terabytes(bytes_value):
 
 
 def convert_to_million_format(number):
-    if not isinstance(number, (int, float)):
-        raise TypeError("Input must be a number (int or float).")
+    # if not isinstance(number, (int, float)):
+    #     raise TypeError("Input must be a number (int or float).")
     
     millions = number / 1e6
 
@@ -240,10 +240,11 @@ def convert_to_billion_format(number):
     Returns:
         str: The formatted string in 'xB' format.
     """
-    if not isinstance(number, (int, float)):
-        raise TypeError("Input must be a number (int or float).")
+    # if not isinstance(number, (int, float)):
+    #     raise TypeError("Input must be a number (int or float).")
     
     # Convert to billions
+    number = float(number)
     billions = number / 1e9
     # return f"{billions:.2f}B"
     return f"{billions:,.2f}B"
@@ -259,10 +260,11 @@ def convert_to_xt_format(number):
     Returns:
         str: The formatted string in 'xT' format.
     """
-    if not isinstance(number, (int, float)):
-        raise TypeError("Input must be a number (int or float).")
+    # if not isinstance(number, (int, float)):
+    #     raise TypeError("Input must be a number (int or float).")
     
     # Convert to trillions
+    number = float(number)
     trillions = number / 1e12
     if abs(trillions) < 0.1:  # Consider very small numbers close to 0
         return convert_to_billion_format(number)
