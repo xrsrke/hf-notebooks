@@ -79,9 +79,37 @@ def calculate_activation_memory(transformer: Transformer, config: TrainingConfig
     # mlp: 19sbh
     # layer_norm: 4sbh
 
+    linear_proj_input = 2 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
+        
+    attn_qkv_matmul = 2 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
+    attn_qk_scores = 4 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
+    attn_softmax = 2 * transformer.n_heads * (config.ctx_length **2) * config.batch_size_per_replicas
+    attn_dropout = transformer.n_heads * (config.ctx_length **2) * config.batch_size_per_replicas
+    attn_v = 2 * transformer.n_heads * (config.ctx_length**2) * config.batch_size_per_replicas + 2 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
+    attn_drop_mask = config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
+
+    mlp = 19 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
+    ln = 4 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
+    
+    total_activation_mem_per_layer_dict = {
+        "linear_proj_input": linear_proj_input,
+        "attn_qkv_matmul": attn_qkv_matmul,
+        "attn_qk_scores": attn_qk_scores,
+        "attn_softmax": attn_softmax,
+        "attn_dropout": attn_dropout,
+        "attn_v": attn_v,
+        "attn_drop_mask": attn_drop_mask,
+        "mlp": mlp,
+        "ln": ln
+    }
+
+    # total_activation_mem_per_layer = linear_proj_input + attn_qkv_matmul + attn_qk_scores + attn_softmax + attn_dropout + attn_v + attn_drop_mask + mlp + ln
+    total_activation_mem_per_layer = sum(total_activation_mem_per_layer_dict.values())
+    # NOTE: add percent to the dict
+    total_activation_mem_per_layer_dict = {k: (v, round(((v / total_activation_mem_per_layer) * 100), 2)) for k, v in total_activation_mem_per_layer_dict.items()}
 
     if config.checkpoint_activations:
-        activation_mem = (config.ctx_length * 
+        total_activation_mem = (config.ctx_length * 
                          config.batch_size_per_replicas * 
                          transformer.hidden_size * 
                          transformer.n_layers * 
@@ -94,34 +122,6 @@ def calculate_activation_memory(transformer: Transformer, config: TrainingConfig
                          (10 + (24 / config.tp_size) + 
                           5 * ((transformer.n_heads * config.ctx_length) / 
                                (transformer.hidden_size * config.tp_size))))
-        linear_proj_input = 2 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
-        
-        attn_qkv_matmul = 2 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
-        attn_qk_scores = 4 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
-        attn_softmax = 2 * transformer.n_heads * (config.ctx_length **2) * config.batch_size_per_replicas
-        attn_dropout = transformer.n_heads * (config.ctx_length **2) * config.batch_size_per_replicas
-        attn_v = 2 * transformer.n_heads * (config.ctx_length**2) * config.batch_size_per_replicas + 2 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
-        attn_drop_mask = config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
-
-        mlp = 19 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
-        ln = 4 * config.ctx_length * config.batch_size_per_replicas * transformer.hidden_size
-        
-        total_activation_mem_per_layer_dict = {
-            "linear_proj_input": linear_proj_input,
-            "attn_qkv_matmul": attn_qkv_matmul,
-            "attn_qk_scores": attn_qk_scores,
-            "attn_softmax": attn_softmax,
-            "attn_dropout": attn_dropout,
-            "attn_v": attn_v,
-            "attn_drop_mask": attn_drop_mask,
-            "mlp": mlp,
-            "ln": ln
-        }
-
-        # total_activation_mem_per_layer = linear_proj_input + attn_qkv_matmul + attn_qk_scores + attn_softmax + attn_dropout + attn_v + attn_drop_mask + mlp + ln
-        total_activation_mem_per_layer = sum(total_activation_mem_per_layer_dict.values())
-        # NOTE: add percent to the dict
-        total_activation_mem_per_layer_dict = {k: (v, round(((v / total_activation_mem_per_layer) * 100), 2)) for k, v in total_activation_mem_per_layer_dict.items()}
         total_activation_mem = total_activation_mem_per_layer * transformer.n_layers
         assert total_activation_mem == ref_total_activation_mem, f"{total_activation_mem} != {ref_total_activation_mem}"
     
@@ -187,6 +187,8 @@ def calculate_memory_requirements(
     include_percent: bool = False
     # misc_mem: float = 0
 ) -> Dict[str, float]:
+
+    assert config.partition_activations is False, "not support partition activations"
     
     model_mem = calculate_model_memory(transformer, config)
     kv_cache_mem = calculate_kv_cache_memory(transformer, config)

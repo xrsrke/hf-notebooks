@@ -61,15 +61,15 @@ def get_num_training_steps(dataset_size, model_size):
     return dataset_size / get_maximum_tokens_per_step(model_size)
 
 
-def calculate_total_steps(model_size, global_batch_size):
+def calculate_total_steps(model_size, dataset_size, global_batch_size):
     """ compute the total number of steps for a given model size and global batch size """
-    dataset_size = get_dataset_size_from_model_size(model_size)
+    # dataset_size = get_dataset_size_from_model_size(model_size)
     num_total_steps = dataset_size // global_batch_size
     return num_total_steps
 
 
-def calculate_total_flops(model_size):
-    dataset_size = get_dataset_size_from_model_size(model_size)
+def calculate_total_flops(model_size, dataset_size):
+    # dataset_size = get_dataset_size_from_model_size(model_size)
     total_flops = compute_training_flops(dataset_size=dataset_size, model_size=model_size)
     return total_flops
 
@@ -91,19 +91,25 @@ def get_time_per_step(model_size, global_batch_size, hardware_flops):
     flop_per_step = calculate_flops_per_step(model_size, global_batch_size)
     num_h100s = calculate_num_h100s_per_step(model_size, global_batch_size, hardware_flops)
     aggregate_throughput = num_h100s * hardware_flops
-    return flop_per_step / aggregate_throughput
+    
+    try:
+        if aggregate_throughput == 0:
+            return 0
+        return flop_per_step / aggregate_throughput
+    except:
+        assert 1 == 1
 
 
-def calculate_total_time_to_train_a_model(model_size, global_batch_size, time_per_step):
-    total_steps = calculate_total_steps(model_size, global_batch_size)
+def calculate_total_time_to_train_a_model(model_size, dataset_size, global_batch_size, time_per_step):
+    total_steps = calculate_total_steps(model_size, dataset_size=dataset_size, global_batch_size=global_batch_size)
     return time_per_step * total_steps
 
 
-def get_training_cost(model_size, global_batch_size, utilized_flops, cost_per_hour):
+def get_training_cost(model_size, dataset_size, global_batch_size, utilized_flops, cost_per_hour):
     num_h100s = calculate_num_h100s_per_step(model_size, global_batch_size, utilized_flops)
     time_per_step = get_time_per_step(model_size, global_batch_size, utilized_flops)
     time_per_step = time_per_step / 3600 # convert to hours
-    num_steps = calculate_total_steps(model_size, global_batch_size)
+    num_steps = calculate_total_steps(model_size, dataset_size, global_batch_size)
     return num_h100s * cost_per_hour * time_per_step * num_steps
 
 
@@ -154,12 +160,12 @@ def calculate_total_minimum_comm_latency_to_train_a_model(model_size, global_bat
     return total_steps * minimum_latency
 
 
-def calculate_comm_time_given_comm_volume(comm_volume, bandwidth):
+def calculate_comm_time_given_comm_volume(comm_volume, bandwidth, world_size):
     """
     comm_volume: in bytes
     bandwidth: in bytes per second
     """
-    return comm_volume / bandwidth
+    return comm_volume / (bandwidth/world_size)
 
 
 ### MEMORY

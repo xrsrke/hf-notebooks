@@ -34,7 +34,7 @@ V100_MEMORY = 16*1024**3
 A100_MEMORY = 64*1024**3
 MI250X_MEMORY = 128*1024**3
 
-BFLOAT16_MFU = 0.55
+BFLOAT16_MFU = 0.40
 FP8_MFU = 0.40
 
 UTILIZED_FP8_FLOPS = H100_THEORICAL_PEAK_FLOPS_FP8_TC * FP8_MFU
@@ -98,14 +98,32 @@ LLAMA3_400B_CONFIG = Transformer(
     n_key_value_heads=8,
     # ctx_length=8192
 )
+CTX_LENGTH = 8192
 
 # NOTE: a standard training config for estimating the memory requirements
 VANILA_TRAINING_CONFIG = TrainingConfig(
     tp_size=1, pp_size=1, num_gpus=1,
     batch_size_per_replicas=1,
-    ctx_length=8192,
+    ctx_length=CTX_LENGTH,
     partition_activations=False,
     checkpoint_activations=False,
+    
+    weight_dtype=Datatype.BFLOAT16,
+    act_dtype=Datatype.BFLOAT16,
+    gradient_dtype=Datatype.BFLOAT16,
+
+    zero1=1,
+    optim_first_state_dtype=Datatype.FLOAT32,
+    optim_second_state_dtype=Datatype.FLOAT32,
+    master_weight_dtype=Datatype.FLOAT32,
+)
+
+VANILA_TRAINING_CONFIG_WITH_ACC_RECOMP = TrainingConfig(
+    tp_size=1, pp_size=1, num_gpus=1,
+    batch_size_per_replicas=1,
+    ctx_length=CTX_LENGTH,
+    partition_activations=False,
+    checkpoint_activations=True,
     
     weight_dtype=Datatype.BFLOAT16,
     act_dtype=Datatype.BFLOAT16,
